@@ -1,0 +1,31 @@
+{
+	"name": "bscripts",
+	"private": "true",
+	"scripts": {
+		"prepare": "husky install",
+		"lint": "eslint",
+		"lint:fix": "eslint --fix",
+		"format": "prettier --write 'packages/*/*.js' 'packages/*/!(node_modules)/**/*.js'"
+	},
+	"devDependencies": {
+		"eslint": "^7.27.0",
+		"eslint-config-prettier": "^8.3.0",
+		"eslint-plugin-prettier": "^3.4.0",
+		"husky": "^6.0.0",
+		"lerna": "^4.0.0",
+		"lint-staged": "^11.0.0",
+		"prettier": "^2.3.0"
+	},
+	"workspaces": [
+		"packages/*"
+	],
+	"dependencies": {},
+	"lint-staged": {
+		"*.{js,json,yml,yaml,css,scss,ts,tsx,md}": [
+			"prettier --write"
+		],
+		"*.{js}": [
+			"eslint --fix"
+		]
+	}
+}

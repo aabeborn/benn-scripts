@@ -1,0 +1,10 @@
+node_modules
+dist
+build
+.idea
+.vscode
+*.log
+.DS_Store
+*.tgz
+yarn.lock
+.npm/
