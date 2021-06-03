@@ -3,6 +3,7 @@ const commander = require('commander')
 const chalk = require('chalk')
 const path = require('path')
 const fs = require('fs-extra')
+const os = require('os')
 
 const {
 	printEnvInfo,
@@ -11,6 +12,13 @@ const {
 	checkNodeVersion,
 	checkAppName,
 	isSafe,
+	useYarn,
+	checkNpmPermissions,
+	checkNpmVersion,
+	setYarnRegistry,
+	getPackagesToInstall,
+	getTemplatesToInstall,
+	getPackageInfo,
 } = require('./helpers')
 const pkg = require('../package.json')
 const { version } = pkg
@@ -28,7 +36,13 @@ async function init() {
 	}
 	checkProjectName(program.name(), projectName)
 	await checkScriptVersion()
-	await createApp(projectName, scriptsVersion, template, useNpm)
+	const { root, appName, originalDirectory, useYarn } = await createApp(
+		projectName,
+		scriptsVersion,
+		template,
+		useNpm
+	)
+	await run(root, appName, scriptsVersion, originalDirectory, template, useYarn)
 }
 
 function createCommand(cb) {
@@ -79,6 +93,43 @@ async function createApp(projectName, version, template, npm) {
 	if (!isSafe(root, name)) {
 		process.exit(1)
 	}
+	const pkgJson = {
+		name: projectName,
+		version: '0.1.0',
+		private: true,
+	}
+	// console.log(chalk.cyan("Writing package.json"))
+	fs.writeJsonSync(path.join(root, 'package.json'), pkgJson, {
+		EOL: os.EOL,
+		spaces: 2,
+	})
+	const useYarn = npm ? false : useYarn()
+	const originalDirectory = process.cwd()
+	if (!useYarn && !checkNpmPermissions()) {
+		process.exit(1)
+	}
+	checkNpmVersion()
+	// TODO What is yarn pnp? add it here to check stuff
+	if (useYarn) {
+		setYarnRegistry(root)
+	}
+	return { root, appName, originalDirectory, useYarn }
+}
+
+async function run(
+	root,
+	appName,
+	version,
+	originalDirectory,
+	template,
+	useYarn
+) {
+	const packageToInstall = getPackagesToInstall(version, originalDirectory)
+	const templateToInstall = getTemplatesToInstall(template, originalDirectory)
+	const allDependencies = ['vue', packageToInstall]
+
+	console.log(chalk.cyan('Installing packages. This could take a while'))
+	const templateInfo = getPackageInfo(templateToInstall)
 }
 
 module.exports = { init }
