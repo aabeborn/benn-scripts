@@ -1,0 +1,34 @@
+{
+	"name": "@bscripts/create-app",
+	"version": "0.1.1",
+	"description": "Bscripts app generator",
+	"main": "src/index.js",
+	"bin": {
+		"bscripts-create-app": "dist/index.js"
+	},
+	"files": [
+		"dist/**"
+	],
+	"scripts": {
+		"dev": "tsc -w",
+		"build": "tsc --clean",
+		"lint": "eslint --print-config ./src/index.ts"
+	},
+	"author": {
+		"email": "benato.andrea98@gmail.com",
+		"name": "Andrea Benato"
+	},
+	"private": false,
+	"license": "MIT",
+	"devDependencies": {
+		"@types/node": "^15.12.1",
+		"@typescript-eslint/eslint-plugin": "^4.26.0",
+		"@typescript-eslint/parser": "^4.26.0",
+		"typescript": "^4.3.2"
+	},
+	"dependencies": {
+		"chalk": "^4.1.1",
+		"commander": "^7.2.0",
+		"inquirer": "^8.1.0"
+	}
+}
