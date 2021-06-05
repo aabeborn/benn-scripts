@@ -8,3 +8,4 @@ build
 *.tgz
 yarn.lock
 .npm/
+*.tsbuildinfo
