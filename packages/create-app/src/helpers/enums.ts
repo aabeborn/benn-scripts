@@ -1,15 +1,15 @@
 export enum Language {
-    javascript = "Javascript",
-    typescript = "Typescript"
+	javascript = 'Javascript',
+	typescript = 'Typescript',
 }
 
 export enum Framework {
-    vue = "Vue",
-    react = "React",
-    vanilla = "Vanilla"
+	vue = 'Vue',
+	react = 'React',
+	vanilla = 'Vanilla',
 }
 
 export enum Builder {
-    vite = "Vite",
-    webpack = "Webpack"
+	vite = 'Vite',
+	webpack = 'Webpack',
 }

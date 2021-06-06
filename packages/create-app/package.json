@@ -12,7 +12,8 @@
 	"scripts": {
 		"dev": "tsc -w",
 		"build": "tsc --clean",
-		"lint": "eslint --print-config ./src/index.ts"
+		"lint": "eslint --fix",
+		"format": "prettier --write src"
 	},
 	"author": {
 		"email": "benato.andrea98@gmail.com",
