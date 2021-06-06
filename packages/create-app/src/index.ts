@@ -3,11 +3,18 @@
 // import {Command} from "commander";
 
 import {
-    isNodeSupported
+    isNodeSupported,
+    printInfo,
 } from "./helpers";
-import {createProgram} from "./helpers/commands"
+import {
+    canUseYarn,
+    checkNpmPermissions,
+    // setYarnRegistry
+} from "./helpers/npm";
+import {createOptions, createProgram} from "./helpers/commands"
 import chalk from "chalk";
 import figlet from "figlet";
+import commander from "commander";
 
 async function init():Promise<void> {
     console.log(
@@ -18,8 +25,14 @@ async function init():Promise<void> {
         )
     )
     isNodeSupported()
-    // const program: Command = createProgram()
-    createProgram()
+    const program: commander.Command = createProgram()
+    const {info, useNpm} = program.opts()
+    if(info) await printInfo()
+    const useYarn = useNpm ? false : canUseYarn()
+    if(!useYarn) {
+        checkNpmPermissions()
+    }
+    await createOptions()
 }
 
 
