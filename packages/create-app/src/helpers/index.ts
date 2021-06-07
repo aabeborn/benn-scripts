@@ -1,7 +1,10 @@
 'use strict'
 import chalk from 'chalk'
 import envinfo from 'envinfo'
+import fs from 'fs-extra'
+import path from 'path'
 import { version, name } from '../../package.json'
+import { checkAppName } from './npm'
 
 const NODE_LAST_SUPPORTED_VERSION = 10
 
@@ -37,6 +40,13 @@ export async function printInfo(): Promise<void> {
 			}
 		)
 		.then(console.log)
+}
+
+export function createProject(projectName: string, framework: string) {
+	const root = path.resolve(projectName)
+	checkAppName(projectName, framework)
+	fs.ensureDirSync(projectName)
+	console.log(root)
 }
 
 export function isOnline(): Boolean {

@@ -1,5 +1,7 @@
 import { execSync, spawnSync } from 'child_process'
 import chalk from 'chalk'
+import validateProjectName from 'validate-npm-package-name'
+import { dependencies } from './enums'
 
 export function canUseYarn(): Boolean {
 	try {
@@ -53,6 +55,39 @@ export function checkNpmPermissions(): void {
 				'\nTry to run the above two lines in the terminal.\nTo learn more about this problem, read: https://blogs.msdn.microsoft.com/oldnewthing/20071121-00/?p=24433/'
 			)
 		}
+	}
+}
+
+export function checkAppName(name: string, framework: string) {
+	const result = validateProjectName(name)
+	if (!result.validForNewPackages) {
+		console.error(
+			chalk.red(
+				`Cannot create a project named ${chalk.green(
+					`"${name}"`
+				)} because of npm naming restrictions:\n`
+			)
+		)
+		const errors = [...(result.errors || []), ...(result.warnings || [])]
+		errors.forEach((error) => {
+			console.error(chalk.red(`- ${error}`))
+		})
+		console.error(chalk.red('\nPlease choose a different project name.'))
+		process.exit(1)
+	}
+	const deps = dependencies.get(framework)
+	if (deps?.includes(name)) {
+		console.error(
+			chalk.red(
+				`Cannot create a project named ${chalk.green(
+					`"${name}"`
+				)} because a dependency with the same name exists.\n` +
+					`Due to the way npm works, the following names are not allowed:\n\n`
+			) +
+				chalk.cyan(deps.map((depName) => `  ${depName}`).join('\n')) +
+				chalk.red('\n\nPlease choose a different project name.')
+		)
+		process.exit(1)
 	}
 }
 

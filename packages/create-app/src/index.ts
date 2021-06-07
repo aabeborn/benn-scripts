@@ -2,7 +2,7 @@
 'use strict'
 // import {Command} from "commander";
 
-import { isNodeSupported, printInfo } from './helpers'
+import { isNodeSupported, printInfo, createProject } from './helpers'
 import {
 	canUseYarn,
 	checkNpmPermissions,
@@ -29,7 +29,9 @@ async function init(): Promise<void> {
 	if (!useYarn) {
 		checkNpmPermissions()
 	}
-	await createOptions()
+	const { language, builder, name, framework } = await createOptions()
+	createProject(name, framework.toLowerCase())
+	console.log(language, builder)
 }
 
 init()

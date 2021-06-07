@@ -30,7 +30,6 @@ interface CommandOptions {
 }
 
 export async function createOptions(): Promise<CommandOptions> {
-	console.log(Object.keys(Language))
 	const languages = Object.keys(Language).map((item: string): string => {
 		// @ts-ignore
 		return Language[item]

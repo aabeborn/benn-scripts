@@ -13,3 +13,11 @@ export enum Builder {
 	vite = 'Vite',
 	webpack = 'Webpack',
 }
+
+export const dependencies: Map<string, string[]> = new Map([
+	[
+		'react',
+		['react', 'react-dom', '@bscripts/react-webpack', '@bscripts/react-vite'],
+	],
+	['vue', ['vue', '@bscripts/vue-webpack', '@bscripts/vue-vite']],
+])
