@@ -42,11 +42,75 @@ export async function printInfo(): Promise<void> {
 		.then(console.log)
 }
 
-export function createProject(projectName: string, framework: string) {
+export function isSafeToCreateProject(root: string, name: string): void {
+	// validFiles = [
+	// 	'.DS_Store',
+	// 	'.git',
+	// 	'.gitattributes',
+	// 	'.gitignore',
+	// 	'.gitlab-ci.yml',
+	// 	'.hg',
+	// 	'.hgcheck',
+	// 	'.hgignore',
+	// 	'.idea',
+	// 	'.npmignore',
+	// 	'.travis.yml',
+	// 	'docs',
+	// 	'LICENSE',
+	// 	'README.md',
+	// 	'mkdocs.yml',
+	// 	'Thumbs.db',
+	// ]
+	const regExp = new RegExp(
+		/^(docs | LICENSE | \.(DS_Store | git | gitattributes | gitignore | *.yml | yml | hg | hgcheck | idea | npmignore | md | db))$/
+	)
+	const errorsLog = ['npm-debug.log', 'yarn-error.log', 'yarn-debug.log']
+	const isErrorLog = (file: string): boolean => {
+		return errorsLog.some((pattern) => file.startsWith(pattern))
+	}
+	const conflicts = fs
+		.readdirSync(root)
+		.filter(
+			(file) => !file.match(regExp) && !/\.iml$/.test(file) && !isErrorLog(file)
+		)
+	if (conflicts.length > 0) {
+		console.log(
+			chalk.red(
+				`The directory ${chalk.green(
+					name
+				)} contains files that could conflicts:`
+			)
+		)
+		for (const file of conflicts) {
+			try {
+				const stats = fs.lstatSync(path.join(root, file))
+				if (stats.isDirectory()) {
+					console.log(`-${chalk.blue(`${file}/`)}`)
+				} else {
+					console.log(`-${file}`)
+				}
+			} catch (e) {
+				console.log(`-${file}`)
+			}
+		}
+		console.log(
+			chalk.cyan('Please remove the files or use a new folder or project name')
+		)
+		process.exit(1)
+	}
+	// Remove any log files from a previous installation
+	fs.readdirSync(root).forEach((file) => {
+		if (isErrorLog(file)) {
+			fs.removeSync(path.join(root, file))
+		}
+	})
+}
+
+export function createProject(projectName: string, framework: string): void {
 	const root = path.resolve(projectName)
 	checkAppName(projectName, framework)
 	fs.ensureDirSync(projectName)
-	console.log(root)
+	isSafeToCreateProject(root, projectName)
 }
 
 export function isOnline(): Boolean {
