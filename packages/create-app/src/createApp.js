@@ -4,6 +4,8 @@ const chalk = require('chalk')
 const path = require('path')
 const fs = require('fs-extra')
 const os = require('os')
+const semver = require('semver')
+const spawn = require('child_process').spawn
 
 const {
 	printEnvInfo,
@@ -19,6 +21,7 @@ const {
 	getPackagesToInstall,
 	getTemplatesToInstall,
 	getPackageInfo,
+	checkIfOnline,
 } = require('./helpers')
 const pkg = require('../package.json')
 const { version } = pkg
@@ -42,7 +45,22 @@ async function init() {
 		template,
 		useNpm
 	)
-	await run(root, appName, scriptsVersion, originalDirectory, template, useYarn)
+	const {
+		allDependencies,
+		isOnline,
+		packageInfo,
+		supportsTemplates,
+		templateInfo,
+	} = await run(
+		root,
+		appName,
+		scriptsVersion,
+		originalDirectory,
+		template,
+		useYarn
+	)
+	await install(root, useYarn, allDependencies, isOnline)
+	await finish(packageInfo, supportsTemplates, templateInfo)
 }
 
 function createCommand(cb) {
@@ -129,7 +147,92 @@ async function run(
 	const allDependencies = ['vue', packageToInstall]
 
 	console.log(chalk.cyan('Installing packages. This could take a while'))
-	const templateInfo = getPackageInfo(templateToInstall)
+	const templateInfo = await getPackageInfo(templateToInstall)
+	const packageInfo = await getPackageInfo(packageToInstall)
+	const isOnline = checkIfOnline(useYarn)
+	let packageVersion = semver.coerce(packageInfo.version)
+
+	const templatesVersionMinimum = '3.3.0'
+
+	// Assume compatibility if we can't test the version.
+	if (!semver.valid(packageVersion)) {
+		packageVersion = templatesVersionMinimum
+	}
+	// Only support templates when used alongside new react-scripts versions.
+	const supportsTemplates = semver.gte(packageVersion, templatesVersionMinimum)
+	if (supportsTemplates) {
+		allDependencies.push(templateToInstall)
+	} else if (template) {
+		console.log(
+			`The ${chalk.cyan(packageInfo.name)} version you're using ${
+				packageInfo.name === 'react-scripts' ? 'is not' : 'may not be'
+			} compatible with the ${chalk.cyan('--template')} option.`
+		)
+	}
+
+	console.log(
+		`Installing ${chalk.cyan('vue')}, and ${chalk.cyan(packageInfo.name)}${
+			supportsTemplates ? ` with ${chalk.cyan(templateInfo.name)}` : ''
+		}...`
+	)
+	return {
+		allDependencies,
+		isOnline,
+		packageInfo,
+		supportsTemplates,
+		templateInfo,
+	}
+}
+
+async function install(root, useYarn, dependencies, isOnline) {
+	return new Promise((resolve, reject) => {
+		let command
+		let args
+		if (useYarn) {
+			command = 'yarn'
+			args = ['add', '--exact']
+			if (!isOnline) {
+				args.push('--offline')
+			}
+			args.push(...dependencies)
+			args.push('--cwd')
+			args.push(root)
+			if (!isOnline) {
+				console.log(
+					chalk.yellow(`
+				You appear to be offline.
+				Falling back to the local Yarn cache.`)
+				)
+			}
+		} else {
+			command = 'npm'
+			args = [
+				'install',
+				'--save',
+				'--save-exact',
+				'--loglevel',
+				'error',
+			].concat(dependencies)
+		}
+		const child = spawn(command, args, { stdio: 'inherit' })
+		child.on('close', (code) => {
+			if (code !== 0) {
+				reject({
+					command: `${command} ${args.join(' ')}`,
+				})
+				return
+			}
+			resolve()
+		})
+	})
+}
+
+async function finish(packageInfo, supportsTemplate, templateInfo) {
+	const packageName = packageInfo.name
+	const templateName = supportsTemplate ? templateInfo.name : undefined
+	checkNodeVersion(packageName)
+	setCaretRange(packageName)
+	await executeNodeScript()
 }
 
 module.exports = { init }

@@ -9,6 +9,9 @@ const spawn = require('cross-spawn')
 const path = require('path')
 const tmp = require('tmp-promise')
 const { version, name } = require('../package.json')
+const hyperquest = require('hyperquest')
+const unpack = require('tar-pack').unpack
+const dns = require('dns')
 const deps = ['vue', '@bscripts/scripts']
 
 async function printEnvInfo() {
@@ -265,7 +268,7 @@ function setYarnRegistry(root) {
 	}
 }
 
-function getPackagesToInstall(version, directory) {
+function getPackagesToInstall(version) {
 	let pkgToInstall = '@bscripts/scripts'
 	const validSemver = semver.valid(version)
 	if (validSemver) {
@@ -304,7 +307,85 @@ function getTemplatesToInstall(template, directory) {
 
 async function getPackageInfo(installPackage) {
 	if (installPackage.match(/^.+\.(tgz|tar\.gz)$/)) {
-		const directory = await getTemporaryDirectory()
+		try {
+			const directory = await getTemporaryDirectory()
+			let stream
+			if (/^http/.test(installPackage)) {
+				stream = hyperquest(installPackage)
+			} else {
+				stream = fs.createReadStream(installPackage)
+			}
+			await extractStream(stream, directory.tmpdir)
+			const { name, version } = require(path.join(
+				directory.tmpdir,
+				'package.json'
+			))
+			directory.cleanup()
+			return { name, version }
+		} catch (err) {
+			console.log(
+				chalk.yellow(
+					`Could not extract the package name from the archive: ${err.message}`
+				)
+			)
+			const assumedProjectName = installPackage.match(
+				/^.+\/(.+?)(?:-\d+.+)?\.(tgz|tar\.gz)$/
+			)[1]
+			console.log(
+				`Based on the filename, assuming it is "${chalk.cyan(
+					assumedProjectName
+				)}"`
+			)
+			return { name: assumedProjectName }
+		}
+	} else if (installPackage.startsWith('git+')) {
+		// Pull package name out of git urls
+		return {
+			name: installPackage.charAt(0) + installPackage.substr(1).split('@')[0],
+			version: installPackage.split('@')[1],
+		}
+	} else if (installPackage.match(/^file:/)) {
+		const installPackagePath = installPackage.match(/^file:(.*)?$/)[1]
+		const { name, version } = require(path.join(
+			installPackagePath,
+			'package.json'
+		))
+		return { name, version }
+	}
+	return { name: installPackage }
+}
+
+async function checkIfOnline(useYarn) {
+	if (!useYarn) {
+		// Don't ping the Yarn registry.
+		// We'll just assume the best case.
+		return Promise.resolve(true)
+	}
+	return new Promise((resolve) => {
+		dns.lookup('registry.yarnpkg.com', (err) => {
+			let proxy
+			if (err != null && (proxy = getProxy())) {
+				// If a proxy is defined, we likely can't resolve external hostnames.
+				// Try to resolve the proxy name as an indication of a connection.
+				dns.lookup(url.parse(proxy).hostname, (proxyErr) => {
+					resolve(proxyErr == null)
+				})
+			} else {
+				resolve(err == null)
+			}
+		})
+	})
+}
+
+function getProxy() {
+	if (process.env.https_proxy) {
+		return process.env.https_proxy
+	} else {
+		try {
+			// Trying to read https-proxy from .npmrc
+			let httpsProxy = exec('npm config get https-proxy').toString().trim()
+			return httpsProxy !== 'null' ? httpsProxy : undefined
+		} catch (e) {}
 	}
 }
 
@@ -319,6 +400,21 @@ async function getTemporaryDirectory() {
 		throw new Error(err)
 	}
 }
+
+function extractStream(stream, dest) {
+	return new Promise((resolve, reject) => {
+		stream.pipe(
+			unpack(dest, (err) => {
+				if (err) {
+					reject(err)
+				} else {
+					resolve(dest)
+				}
+			})
+		)
+	})
+}
+
 module.exports = {
 	printEnvInfo,
 	checkProjectName,
@@ -332,4 +428,6 @@ module.exports = {
 	setYarnRegistry,
 	getTemplatesToInstall,
 	getPackagesToInstall,
+	getPackageInfo,
+	checkIfOnline,
 }
