@@ -4,7 +4,9 @@ import envinfo from 'envinfo'
 import fs from 'fs-extra'
 import path from 'path'
 import { version, name } from '../../package.json'
-import { checkAppName } from './npm'
+import dns from 'dns'
+import { URL } from 'url'
+import { execSync } from 'child_process'
 
 const NODE_LAST_SUPPORTED_VERSION = 10
 
@@ -106,13 +108,61 @@ export function isSafeToCreateProject(root: string, name: string): void {
 	})
 }
 
-export function createProject(projectName: string, framework: string): void {
-	const root = path.resolve(projectName)
-	checkAppName(projectName, framework)
-	fs.ensureDirSync(projectName)
-	isSafeToCreateProject(root, projectName)
+export async function isOnline(useYarn: boolean): Promise<void> {
+	if (!useYarn) return
+	return new Promise((resolve) => {
+		dns.lookup('registry.yarnpkg.com', (err) => {
+			let proxy = getProxy()
+			if (err != null && proxy) {
+				// If a proxy is defined, we likely can't resolve external hostnames.
+				// Try to resolve the proxy name as an indication of a connection.
+				dns.lookup(new URL(proxy).hostname, (proxyErr) => {
+					if (proxyErr) {
+						console.error(
+							chalk.red(
+								'It seems that your proxy configuration is wrong. Please update it or remove it.'
+							)
+						)
+						process.exit(1)
+					}
+					return resolve()
+				})
+			} else {
+				if (err)
+					console.error(
+						chalk.red(
+							'It seems that you are offline.\n You need to be online to create the application. \n Please fix your connection.'
+						)
+					)
+				return resolve()
+			}
+		})
+	})
 }
 
-export function isOnline(): Boolean {
-	return true
+function getProxy(): string | undefined {
+	if (process.env.https_proxy) {
+		return process.env.https_proxy
+	} else {
+		try {
+			// Trying to read https-proxy from .npmrc
+			let httpsProxy = execSync('npm config get https-proxy').toString().trim()
+			return httpsProxy !== 'null' ? httpsProxy : undefined
+		} catch (e) {
+			return
+		}
+	}
+}
+
+export function getPackageAndTemplate(
+	language: string,
+	builder: string,
+	framework: string
+): { packageName: string; templateName: string } {
+	console.log(language)
+	let packageName = '@bscripts/'
+	let templateName = '@bscripts/'
+	packageName += `${framework}-${builder}-scripts`.toLowerCase()
+	templateName += `${framework}-${builder}-template`.toLowerCase()
+	return { packageName, templateName }
 }

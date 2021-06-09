@@ -3,7 +3,7 @@ import chalk from 'chalk'
 import validateProjectName from 'validate-npm-package-name'
 import { dependencies } from './enums'
 
-export function canUseYarn(): Boolean {
+export function canUseYarn(): boolean {
 	try {
 		execSync('yarn --version', { stdio: 'ignore' })
 		return true
@@ -90,10 +90,3 @@ export function checkAppName(name: string, framework: string) {
 		process.exit(1)
 	}
 }
-
-// export function setYarnRegistry(): void {
-//     let useDefaultRegistry = true;
-//     try {
-//
-//     }
-// }
