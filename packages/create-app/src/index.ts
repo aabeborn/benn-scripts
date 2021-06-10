@@ -8,8 +8,14 @@ import {
 	isSafeToCreateProject,
 	getPackageAndTemplate,
 	isOnline,
+	getAllDependencies,
 } from './helpers'
-import { canUseYarn, checkAppName, checkNpmPermissions } from './helpers/npm'
+import {
+	canUseYarn,
+	checkAppName,
+	checkNpmPermissions,
+	installDeps,
+} from './helpers/npm'
 import { createOptions, createProgram } from './helpers/commands'
 import chalk from 'chalk'
 import figlet from 'figlet'
@@ -43,7 +49,21 @@ async function init(): Promise<void> {
 		framework
 	)
 	await isOnline(useYarn)
-	console.log(projectDir, language, builder, packageName, templateName)
+	const dependencies = getAllDependencies(framework).concat(packageName)
+	console.log(
+		`Installing ${chalk.cyan(dependencies.toString())} with ${chalk.cyan(
+			templateName
+		)}`
+	)
+	await installDeps(dependencies, useYarn, projectDir)
+	console.log(
+		projectDir,
+		language,
+		builder,
+		packageName,
+		templateName,
+		dependencies
+	)
 }
 
 function createProject(projectName: string, framework: string): string {

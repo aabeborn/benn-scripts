@@ -7,6 +7,7 @@ import { version, name } from '../../package.json'
 import dns from 'dns'
 import { URL } from 'url'
 import { execSync } from 'child_process'
+import { Framework } from './enums'
 
 const NODE_LAST_SUPPORTED_VERSION = 10
 
@@ -146,7 +147,9 @@ function getProxy(): string | undefined {
 	} else {
 		try {
 			// Trying to read https-proxy from .npmrc
-			let httpsProxy = execSync('npm config get https-proxy').toString().trim()
+			const httpsProxy = execSync('npm config get https-proxy')
+				.toString()
+				.trim()
 			return httpsProxy !== 'null' ? httpsProxy : undefined
 		} catch (e) {
 			return
@@ -165,4 +168,20 @@ export function getPackageAndTemplate(
 	packageName += `${framework}-${builder}-scripts`.toLowerCase()
 	templateName += `${framework}-${builder}-template`.toLowerCase()
 	return { packageName, templateName }
+}
+
+export function getAllDependencies(framework: Framework): string[] {
+	if (framework === Framework.react) {
+		return ['react', 'react-dom']
+	}
+	if (framework === Framework.vue) {
+		return ['vue']
+	}
+	if (framework === Framework.vanilla) {
+		return []
+	}
+	console.log(
+		chalk.red('Invalid framework has been selected. Please select a valid one')
+	)
+	process.exit(1)
 }

@@ -1,4 +1,4 @@
-import { execSync, spawnSync } from 'child_process'
+import { execSync, spawn, spawnSync } from 'child_process'
 import chalk from 'chalk'
 import validateProjectName from 'validate-npm-package-name'
 import { dependencies } from './enums'
@@ -58,7 +58,7 @@ export function checkNpmPermissions(): void {
 	}
 }
 
-export function checkAppName(name: string, framework: string) {
+export function checkAppName(name: string, framework: string): void {
 	const result = validateProjectName(name)
 	if (!result.validForNewPackages) {
 		console.error(
@@ -89,4 +89,36 @@ export function checkAppName(name: string, framework: string) {
 		)
 		process.exit(1)
 	}
+}
+
+export async function installDeps(
+	deps: string[],
+	useYarn: boolean,
+	root: string
+): Promise<void> {
+	let cmd: string
+	let args: string[]
+	console.log(root)
+	if (useYarn) {
+		cmd = 'yarn'
+		args = ['add'].concat(deps)
+		args.push('--cwd')
+		args.push(root)
+	} else {
+		cmd = 'npm'
+		args = ['install', '--save'].concat(deps)
+	}
+	return new Promise((resolve) => {
+		const installProcess = spawn(cmd, args, { stdio: 'inherit' })
+		installProcess.on('close', (code) => {
+			if (code !== 0) {
+				console.log(
+					chalk.red(`\nCan't install project dependencies with command:${cmd}`)
+				)
+				process.exit(1)
+				return
+			}
+			resolve()
+		})
+	})
 }
