@@ -19,7 +19,9 @@
 		"email": "benato.andrea98@gmail.com",
 		"name": "Andrea Benato"
 	},
-	"private": false,
+	"publishConfig": {
+		"access": "public"
+	},
 	"license": "MIT",
 	"publishConfig": {
 		"access": "public"
