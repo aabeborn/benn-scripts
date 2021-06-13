@@ -205,9 +205,9 @@ export function setCaretForDependencies(dependencies: string[]): void {
 		}
 		let patchedVersion = `^${version}`
 		if (!semver.validRange(patchedVersion)) {
-			`Unable to patch ${name} dependency version because version ${chalk.red(
+			console.log(`Unable to patch ${name} dependency version because version ${chalk.red(
 				version
-			)} will become invalid ${chalk.red(patchedVersion)}`
+			)} will become invalid ${chalk.red(patchedVersion)}`)
 		}
 		pkg.dependencies[dep] = version
 	})
