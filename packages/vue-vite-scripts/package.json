@@ -4,7 +4,7 @@
 	"description": "Scripts that adds superpowers to bscripts vue and vite generated apps",
 	"main": "dist/index.js",
 	"bin": {
-		"bscripts-create-app": "dist/index.js"
+		"bscripts-vue-vite": "dist/index.js"
 	},
 	"files": [
 		"dist/**"
@@ -32,6 +32,7 @@
 	"dependencies": {
 		"@vitejs/plugin-vue": "^1.2.3",
 		"@vue/compiler-sfc": "^3.1.2",
+		"chalk": "^4.1.1",
 		"vite": "^2.3.8"
 	}
 }
