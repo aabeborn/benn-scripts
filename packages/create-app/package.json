@@ -1,6 +1,6 @@
 {
 	"name": "@bscripts/create-app",
-	"version": "0.2.0",
+	"version": "0.2.1",
 	"description": "Bscripts app generator",
 	"main": "dist/src/index.js",
 	"bin": {
@@ -21,6 +21,9 @@
 	},
 	"private": false,
 	"license": "MIT",
+	"publishConfig": {
+		"access": "public"
+	},
 	"devDependencies": {
 		"@types/envinfo": "^7.8.0",
 		"@types/figlet": "^1.5.1",
