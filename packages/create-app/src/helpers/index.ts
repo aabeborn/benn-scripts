@@ -9,7 +9,7 @@ import { URL } from 'url'
 import { execSync } from 'child_process'
 import semver from 'semver'
 import os from 'os'
-import { Framework } from './enums'
+import { Framework, Language } from './enums'
 
 const NODE_LAST_SUPPORTED_VERSION = 10
 
@@ -164,9 +164,11 @@ export function getPackageAndTemplate(
 	builder: string,
 	framework: string
 ): { packageName: string; templateName: string } {
-	console.log(language)
 	let packageName = '@bscripts/'
 	let templateName = '@bscripts/'
+	if (language === Language.typescript) {
+		console.log('Need to check tsconfig')
+	}
 	packageName += `${framework}-${builder}-scripts`.toLowerCase()
 	templateName += `${framework}-${builder}-template`.toLowerCase()
 	return { packageName, templateName }
@@ -177,7 +179,7 @@ export function getAllDependencies(framework: Framework): string[] {
 		return ['react', 'react-dom']
 	}
 	if (framework === Framework.vue) {
-		return ['vue']
+		return ['vue@next']
 	}
 	if (framework === Framework.vanilla) {
 		return []
@@ -192,24 +194,31 @@ export function setCaretForDependencies(dependencies: string[]): void {
 	const pkgPath = path.join(process.cwd(), 'package.json')
 	const pkg = require(pkgPath)
 	if (!pkg.dependencies) {
-		console.error(chalk.red("Can't find depenedencies in the package.json"))
+		console.error(chalk.red("Can't find dependencies in the package.json"))
 		process.exit(1)
 	}
 	dependencies.forEach((dep) => {
-		const version = pkg.dependencies[dep]
+		let version = pkg.dependencies[dep]
+		if (dep === 'vue@next') {
+			version = pkg.dependencies['vue']
+		}
 		if (!version) {
 			console.error(
 				chalk.red(`Can't find ${dep} dependency in the package.json`)
 			)
 			process.exit(1)
 		}
-		let patchedVersion = `^${version}`
+		const patchedVersion = `^${version}`
 		if (!semver.validRange(patchedVersion)) {
-			console.log(`Unable to patch ${name} dependency version because version ${chalk.red(
-				version
-			)} will become invalid ${chalk.red(patchedVersion)}`)
+			console.log(
+				`Unable to patch ${name} dependency version because version ${chalk.red(
+					version
+				)} will become invalid ${chalk.red(patchedVersion)}`
+			)
 		}
-		pkg.dependencies[dep] = version
+		if (dep === 'vue@next') {
+			pkg.dependencies['vue'] = version
+		}
 	})
 	fs.writeFileSync(pkgPath, JSON.stringify(pkg, null, 2) + os.EOL)
 }

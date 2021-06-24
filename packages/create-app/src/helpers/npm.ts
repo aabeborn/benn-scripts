@@ -18,7 +18,9 @@ export function checkNpmPermissions(): void {
 	const cwd = process.cwd()
 	let output: string
 	try {
-		output = spawnSync('npm', ['config', 'list']).output.join('')
+		output = spawnSync('npm', ['config', 'list'], {
+			shell: process.platform === 'win32',
+		}).output.join('')
 		const outputLines = output.split('\n')
 		const prefix = '; cwd = '
 		const line = outputLines.find((line) => line.startsWith(prefix))
@@ -29,7 +31,7 @@ export function checkNpmPermissions(): void {
 		if (err.message !== 'nopermissions')
 			console.error(
 				chalk.red(
-					"Can't check if npm has permissions on current folder.N Please verify your npm installation"
+					"Can't check if npm has permissions on current folder. Please verify your npm installation"
 				)
 			)
 		else
@@ -55,6 +57,7 @@ export function checkNpmPermissions(): void {
 				'\nTry to run the above two lines in the terminal.\nTo learn more about this problem, read: https://blogs.msdn.microsoft.com/oldnewthing/20071121-00/?p=24433/'
 			)
 		}
+		process.exit(1)
 	}
 }
 
@@ -98,7 +101,6 @@ export async function installDeps(
 ): Promise<void> {
 	let cmd: string
 	let args: string[]
-	console.log(root)
 	if (useYarn) {
 		cmd = 'yarn'
 		args = ['add'].concat(deps)
@@ -109,7 +111,10 @@ export async function installDeps(
 		args = ['install', '--save'].concat(deps)
 	}
 	return new Promise((resolve) => {
-		const installProcess = spawn(cmd, args, { stdio: 'inherit' })
+		const installProcess = spawn(cmd, args, {
+			stdio: 'inherit',
+			shell: process.platform === 'win32',
+		})
 		installProcess.on('close', (code) => {
 			if (code !== 0) {
 				console.log(

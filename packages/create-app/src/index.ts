@@ -6,7 +6,7 @@ import commander from 'commander'
 import path from 'path'
 import fs from 'fs-extra'
 import os from 'os'
-import { spawn, spawnSync } from 'child_process'
+import { spawnSync } from 'child_process'
 import {
 	isNodeSupported,
 	printInfo,
@@ -43,7 +43,6 @@ async function init(): Promise<void> {
 	}
 	const { language, builder, name, framework } = await createOptions()
 	const projectDir = await createProject(name, framework.toLowerCase())
-	const originalDirectory = process.cwd()
 	process.chdir(projectDir)
 	const { packageName, templateName } = getPackageAndTemplate(
 		language,
@@ -62,17 +61,11 @@ async function init(): Promise<void> {
 	)
 	await installDeps(dependencies, useYarn, projectDir)
 	setCaretForDependencies(dependencies)
-	await runScript(
-		process.cwd(),
-		[],
-		{ root: projectDir, name, originalDirectory, templateName },
-		packageName
-	)
 	await initTemplate(templateName, useYarn)
-	console.log(chalk.green(`Success! Created ${name}`))
+	console.log(chalk.green(`\nSuccess! Created ${name}\n`))
 	console.log(chalk.yellowBright.bold("Now it's time to coding!"))
 	console.log(
-		chalk.magentaBright('When you are not deleting node modules folder :)')
+		chalk.magentaBright('...When you are not deleting node modules folder :)')
 	)
 }
 
@@ -91,40 +84,6 @@ function createProject(projectName: string, framework: string): string {
 		JSON.stringify(pkgJson, null, 2) + os.EOL
 	)
 	return root
-}
-
-type ScriptData = {
-	root: string
-	name: string
-	originalDirectory: string
-	templateName: string
-}
-
-async function runScript(
-	cwd: string,
-	args: string[],
-	data: ScriptData,
-	pkgName: string
-): Promise<void> {
-	const source = `var init = require('${pkgName}'/init.js);
-	init.apply(null, JSON.parse(process.argv[1]))`
-
-	return new Promise((resolve) => {
-		const scriptProcess = spawn(
-			process.execPath,
-			[...args, '-e', source, '--', JSON.stringify(data)],
-			{ cwd, stdio: 'inherit' }
-		)
-		scriptProcess.on('close', (code) => {
-			if (code !== 0) {
-				console.error(
-					chalk.red('Error while running the initialization script')
-				)
-				process.exit(1)
-			}
-			resolve()
-		})
-	})
 }
 
 type Template = {
@@ -182,7 +141,7 @@ async function initTemplate(template: string, useYarn: boolean) {
 			path.join(appPath, 'README.old.md')
 		)
 	}
-	const templateDir = path.join(templatePkgPath, 'template')
+	const templateDir = path.join(templatePath, 'template')
 	if (fs.existsSync(templateDir)) {
 		fs.copySync(templateDir, appPath)
 	} else {
@@ -241,7 +200,10 @@ async function initTemplate(template: string, useYarn: boolean) {
 		)
 	}
 	console.log(`Installing template dependencies using ${command}...`)
-	const installProcess = spawnSync(command, add, { stdio: 'inherit' })
+	const installProcess = spawnSync(command, add, {
+		stdio: 'inherit',
+		shell: process.platform === 'win32',
+	})
 	if (installProcess.status !== 0) {
 		console.error(chalk.red(`\`${command} ${add.join(' ')}\` failed`))
 		return
@@ -250,6 +212,7 @@ async function initTemplate(template: string, useYarn: boolean) {
 	console.log(`Removing template package using ${command}...`)
 	const removeProcess = spawnSync(command, [remove, template], {
 		stdio: 'inherit',
+		shell: process.platform === 'win32',
 	})
 	if (removeProcess.status !== 0) {
 		console.error(chalk.red(`\`${command} ${add.join(' ')}\` failed`))
