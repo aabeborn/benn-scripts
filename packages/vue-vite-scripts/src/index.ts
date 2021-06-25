@@ -13,8 +13,9 @@ const scriptIndex = args.findIndex(
 let scriptArgs = scriptIndex > 0 ? args.slice(0, scriptIndex) : []
 scriptArgs = scriptArgs.concat(args.slice(scriptIndex + 1))
 if (scriptIndex > -1) {
+	console.log(process.execPath, process.platform)
 	const result = spawnSync(
-		process.execPath,
+		'node',
 		scriptArgs.concat(require.resolve(`./commands/${args[scriptIndex]}`)),
 		{
 			stdio: 'inherit',
