@@ -1,6 +1,6 @@
-import { createServer, Plugin } from 'vite'
 import vuePlugin from '@vitejs/plugin-vue'
 import fs from 'fs'
+import { build, Plugin } from 'vite'
 
 ;(async () => {
 	const plugins = [vuePlugin()]
@@ -8,11 +8,8 @@ import fs from 'fs'
 		const customConfig = await import(`${process.cwd()}/bscripts.config.js`)
 		customConfig?.plugins?.forEach((plugin: Plugin) => plugins.push(plugin))
 	}
-
-	const server = await createServer({
+	build({
 		plugins,
 		configFile: false,
-		root: process.cwd(),
 	})
-	await server.listen()
 })()
