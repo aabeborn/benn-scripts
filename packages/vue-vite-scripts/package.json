@@ -1,6 +1,6 @@
 {
 	"name": "@bscripts/vue-vite-scripts",
-	"version": "0.0.1",
+	"version": "0.0.3",
 	"description": "Scripts that adds superpowers to bscripts vue and vite generated apps",
 	"main": "dist/index.js",
 	"bin": {
