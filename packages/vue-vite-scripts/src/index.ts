@@ -10,14 +10,12 @@ const args = process.argv.slice(2)
 const scriptIndex = args.findIndex(
 	(item) => Commands[item as keyof typeof Commands]
 )
-console.log(scriptIndex)
 let scriptArgs = scriptIndex > 0 ? args.slice(0, scriptIndex) : []
 scriptArgs = scriptArgs.concat(args.slice(scriptIndex + 1))
 if (scriptIndex > -1) {
-	console.log(process.execPath)
 	const result = spawnSync(
 		process.execPath,
-		scriptArgs.concat(require(`./commands/${args[scriptIndex]}`)),
+		scriptArgs.concat(require.resolve(`./commands/${args[scriptIndex]}`)),
 		{
 			stdio: 'inherit',
 			shell: process.platform === 'win32',
