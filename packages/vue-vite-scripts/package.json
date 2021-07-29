@@ -1,0 +1,39 @@
+{
+	"name": "@bscripts/vue-vite-scripts",
+	"version": "0.0.4",
+	"description": "Scripts that adds superpowers to bscripts vue and vite generated apps",
+	"main": "dist/index.js",
+	"bin": {
+		"bscripts-vue-vite": "dist/index.js"
+	},
+	"files": [
+		"dist/**"
+	],
+	"scripts": {
+		"dev": "tsc -w",
+		"build": "tsc",
+		"lint": "eslint --fix",
+		"format": "prettier --write src"
+	},
+	"author": {
+		"email": "benato.andrea98@gmail.com",
+		"name": "Andrea Benato"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"private": false,
+	"license": "MIT",
+	"devDependencies": {
+		"@typescript-eslint/eslint-plugin": "^4.28.0",
+		"@typescript-eslint/parser": "^4.28.0",
+		"typescript": "^4.3.4"
+	},
+	"dependencies": {
+		"@vitejs/plugin-vue": "^1.2.3",
+		"@vue/compiler-sfc": "^3.1.2",
+		"chalk": "^4.1.1",
+		"cross-spawn": "^7.0.3",
+		"vite": "^2.3.8"
+	}
+}

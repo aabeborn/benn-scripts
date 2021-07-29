@@ -1,0 +1,55 @@
+{
+	"name": "@bscripts/create-app",
+	"version": "0.2.2",
+	"description": "Bscripts app generator",
+	"main": "dist/src/index.js",
+	"bin": {
+		"bscripts-create-app": "dist/src/index.js"
+	},
+	"files": [
+		"dist/**"
+	],
+	"scripts": {
+		"dev": "tsc -w",
+		"build": "tsc",
+		"lint": "eslint --fix",
+		"format": "prettier --write src"
+	},
+	"author": {
+		"email": "benato.andrea98@gmail.com",
+		"name": "Andrea Benato"
+	},
+	"publishConfig": {
+		"access": "public"
+	},
+	"license": "MIT",
+	"publishConfig": {
+		"access": "public"
+	},
+	"devDependencies": {
+		"@types/envinfo": "^7.8.0",
+		"@types/figlet": "^1.5.1",
+		"@types/fs-extra": "^9.0.11",
+		"@types/inquirer": "^7.3.1",
+		"@types/node": "^15.12.1",
+		"@types/prompts": "^2.0.12",
+		"@types/semver": "^7.3.6",
+		"@types/validate-npm-package-name": "^3.0.2",
+		"@typescript-eslint/eslint-plugin": "^4.26.0",
+		"@typescript-eslint/parser": "^4.26.0",
+		"typescript": "^4.3.2",
+		"validate-npm-package-name": "^3.0.0"
+	},
+	"dependencies": {
+		"chalk": "^4.1.1",
+		"commander": "^7.2.0",
+		"envinfo": "^7.8.1",
+		"figlet": "^1.5.0",
+		"fs-extra": "^10.0.0",
+		"inquirer": "^8.1.0",
+		"ora": "^5.4.0",
+		"prompts": "^2.4.1",
+		"semver": "^7.3.5",
+		"validate-npm-package-name": "^3.0.0"
+	}
+}
